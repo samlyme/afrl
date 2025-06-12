@@ -8,8 +8,8 @@ import os
 import subprocess
 
 def unzip_all(
-    input_path: str = '../archives',
-    output_path: str = '../raw',
+    input_path: str = 'data/archives',
+    output_path: str = 'data/raw',
 ):
     """
     Unzips archives and puts them in an output path
@@ -36,10 +36,10 @@ def unzip_all(
     return True
 
 def main():
-    output_path = "../raw"
+    output_path = "data/raw"
     os.makedirs(output_path, exist_ok=True)
 
-    input_path = "../archives"
+    input_path = "data/archives"
 
     res = unzip_all(input_path, output_path)
     if res:
