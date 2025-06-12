@@ -10,7 +10,7 @@ import threading
 
 def wget_download(
     url,
-    output_path='../archives',
+    output_path,
     show_progress=False
 ):
     """
@@ -50,11 +50,11 @@ def download_thread(url: str, output_path: str):
 
 if __name__ == '__main__':
 
-    output_path = "../archives"
+    output_path = "data/archives"
     os.makedirs(output_path, exist_ok=True)
     urls = []
 
-    with open('./fpv_sources.txt', 'r') as file:
+    with open('data/scripts/fpv_sources.txt', 'r') as file:
         for line in file:
             urls.append(line.strip())
 

@@ -1,4 +1,5 @@
 data/archives
 data/raw
+data/clean
 db
 .venv
