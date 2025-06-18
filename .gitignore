@@ -1,5 +1,4 @@
-data/archives
-data/raw
-data/clean
+data/*
+!data/midair
 db
 .venv
