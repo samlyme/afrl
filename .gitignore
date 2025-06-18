@@ -1,4 +1,4 @@
 data/*
-!data/midair
+!data/scripts
 db
 .venv
