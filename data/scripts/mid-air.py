@@ -1,6 +1,7 @@
 import os
 import h5py
 from h5py import Group, Dataset
+import numpy as np
 import pandas as pd
 
 # MID-AIR position data is sampled at 100hz
@@ -18,7 +19,20 @@ def process_hdf5(path: str) -> list[pd.DataFrame]:
     if not isinstance(item, Dataset):
         raise TypeError("Not a dataset")
 
-    return [pd.DataFrame(f[gt], columns=["tx", "ty", "tz"]) for gt in gts if isinstance(f[gt], Dataset)] # type: ignore
+    out = []
+    for gt in gts:
+        curr = f[gt]
+        if not isinstance(curr, Dataset): continue
+        df = pd.DataFrame(curr, columns=["tx", "ty", "tz"])
+
+        # This dataset is sampled at 100hz
+        interval =  1/100
+        rows: int = len(df)
+        timestamps = np.arange(0, rows * interval, interval)
+        df.insert(0, "timestamp", timestamps)
+        out.append(df)
+
+    return out
 
 def walk_and_process(path: str) -> list[pd.DataFrame]:
     out = []
