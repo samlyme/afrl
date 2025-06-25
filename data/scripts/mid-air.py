@@ -18,7 +18,7 @@ def process_hdf5(path: str) -> list[pd.DataFrame]:
     if not isinstance(item, Dataset):
         raise TypeError("Not a dataset")
 
-    return [pd.DataFrame(f[gt]) for gt in gts if isinstance(f[gt], Dataset)] # type: ignore
+    return [pd.DataFrame(f[gt], columns=["tx", "ty", "tz"]) for gt in gts if isinstance(f[gt], Dataset)] # type: ignore
 
 def walk_and_process(path: str) -> list[pd.DataFrame]:
     out = []
