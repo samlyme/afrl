@@ -1,6 +1,6 @@
 import os
 import h5py
-from h5py import Group, Dataset
+from h5py import Dataset
 import numpy as np
 import pandas as pd
 
