@@ -48,8 +48,8 @@ def download_thread(url: str, output_path: str):
         print(f"Download failed from: {url}")
 
 def unzip_all(
-    input_path: str = 'data/fpv-uzh/archives',
-    output_path: str = 'data/fpv-uzh/raw',
+    input_path: str = 'data/dirty/fpv-uzh/archives',
+    output_path: str = 'data/dirty/fpv-uzh/raw',
 ):
     """
     Unzips archives and puts them in an output path
@@ -76,7 +76,7 @@ def unzip_all(
     return True
 
 def main():
-    output_path = "data/fpv-uzh/archives"
+    output_path = "data/dirty/fpv-uzh/archives"
     os.makedirs(output_path, exist_ok=True)
     urls = []
 
@@ -95,10 +95,10 @@ def main():
         thread.join()    
 
     # unzip files
-    output_path = "data/fpv-uzh/raw"
+    output_path = "data/dirty/fpv-uzh/raw"
     os.makedirs(output_path, exist_ok=True)
 
-    input_path = "data/fpv-uzh/archives"
+    input_path = "data/dirty/fpv-uzh/archives"
 
     res = unzip_all(input_path, output_path)
     if res:
@@ -107,7 +107,7 @@ def main():
         print("Something went wrong")
 
     # only get the groundtruths
-    raw_data_path = "data/fpv-uzh/raw"
+    raw_data_path = "data/dirty/fpv-uzh/raw"
     if not os.path.isdir(raw_data_path):
         print(f"Error: Directory '{raw_data_path}' does not exist.")
         return

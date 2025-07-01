@@ -45,7 +45,7 @@ def walk_and_process(path: str) -> list[pd.DataFrame]:
 
 
 def main():
-    all_pos: list[pd.DataFrame] = walk_and_process("data/mid-air")
+    all_pos: list[pd.DataFrame] = walk_and_process("data/dirty/mid-air")
     out_dir = "data/clean/mid-air"
     os.makedirs(out_dir, exist_ok=True)
 
