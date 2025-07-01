@@ -8,6 +8,8 @@ import os
 import subprocess
 import threading
 
+import pandas as pd
+
 def wget_download(
     url,
     output_path,
@@ -124,12 +126,15 @@ def main():
             from_path = os.path.join(raw_data_path, filename, groundtruth)
             to_path = os.path.join(clean_data_path, filename + ".csv")
             
-            cmd = ["cp", from_path, to_path]
-            try:
-                subprocess.run(cmd, check=True)
-                print(f"Copied '{from_path}' to '{clean_data_path}' (same directory).")
-            except subprocess.CalledProcessError as e:
-                print(f"Failed to copy'{from_path}' to '{clean_data_path}' (same directory).") 
+            df = pd.read_csv(
+                from_path,
+                sep=' ',
+                comment="#", 
+                header=None,
+                names=["timestamp", "tx", "ty", "tz", "qx", "qy", "qz", "qw"]
+            )
+
+            df[["timestamp", "tx", "ty", "tz"]].to_csv(to_path)
 
 if __name__ == "__main__":
     main()
