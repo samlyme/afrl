@@ -2,7 +2,7 @@
 3D Trajectory Generator Script
 
 This script generates three types of 3D trajectories: linear, circular, and lemniscate (infinity-shaped),
-and saves them as individual `.txt` files. Each trajectory file contains a series of points with the
+and saves them as individual `.csv` files. Each trajectory file contains a series of points with the
 fields timestamp, tx, ty, and tz, representing time and the 3D coordinates of the trajectory at that time.
 
 Trajectories are generated with user-defined parameters such as constant velocities for linear trajectories
@@ -30,8 +30,8 @@ This will generate the trajectory files in the `./trajectories` directory, with 
 and a noise level of 0.02 on the trajectory points.
 
 The script will automatically generate 100 files for each trajectory type with randomized parameters.
-The files are named `line_<i>.txt` for linear trajectories, `circle_<i>.txt` for circular trajectories,
-and `lemniscate_<i>.txt` for lemniscate trajectories, where `<i>` is the index of the file starting from 1.
+The files are named `line_<i>.csv` for linear trajectories, `circle_<i>.csv` for circular trajectories,
+and `lemniscate_<i>.csv` for lemniscate trajectories, where `<i>` is the index of the file starting from 1.
 """
 
 import os
@@ -158,7 +158,7 @@ def lemniscate_trajectory2(scale, speed, normal, duration, dt, noise_level=0.01)
 
 
 # Helper function to save the trajectory to a text file with header
-def save_to_txt(filename, trajectory, npoints=100):
+def save_to_csv(filename, trajectory, npoints=100):
     if len(trajectory)==0:
         print(f"No trajectory data to write for {filename}.")
     
@@ -216,7 +216,7 @@ for i, (initial_point, velocity) in enumerate(line_parameters, 1):
         print(f"Velocity magnitude {vel_mag} < 2.0  ignore...")
         continue
     traj_data = linear_trajectory(initial_point, velocity, duration, args.dt, args.noise)
-    save_to_txt(os.path.join(output_path, f'line_{i}.txt'), traj_data, args.npoints)
+    save_to_csv(os.path.join(output_path, f'line_{i}.csv'), traj_data, args.npoints)
 
 # Generate circle parameters
 circle_parameters = [(
@@ -231,7 +231,7 @@ for i, (center, radius, speed, normal) in enumerate(circle_parameters, 1):
     normal = normal / np.linalg.norm(normal)  # type: ignore # Normalize the normal vector
     duration = 2 * np.pi * radius / abs(speed)  # type: ignore # Duration to complete one circle
     traj_data = circular_trajectory(center, radius, 0, speed, normal, duration, args.dt, args.noise)
-    save_to_txt(os.path.join(output_path, f'circle_{i}.txt'), traj_data, args.npoints)
+    save_to_csv(os.path.join(output_path, f'circle_{i}.csv'), traj_data, args.npoints)
 
 # # Generate lemniscate parameters
 # lemniscate_parameters = [(
@@ -245,6 +245,6 @@ for i, (center, radius, speed, normal) in enumerate(circle_parameters, 1):
 #     scale, speed, normal = params
 #     normal = normal / np.linalg.norm(normal)  # Normalize the normal vector
 #     traj_data = lemniscate_trajectory(scale, speed, normal, duration, args.dt, args.noise)
-#     save_to_txt(os.path.join(output_path, f'lemniscate_{i}.txt'), traj_data, args.npoints)
+#     save_to_txt(os.path.join(output_path, f'lemniscate_{i}.csv'), traj_data, args.npoints)
 
 print("Trajectories generated at", output_path)
