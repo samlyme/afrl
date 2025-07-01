@@ -1,3 +1,3 @@
-data/archives
-data/raw
-.python-version
+.venv
+data/*
+!data/scripts
