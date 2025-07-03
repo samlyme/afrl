@@ -53,8 +53,11 @@ Note: The mid-air data is stored as `.hdf5` files. Make sure you have the correc
 
 ### Riotu Labs
 
-The `riotu-labs.py` script downloads usable `.csv` files directly into `data/clean/riotu-labs`. The format is already correct.
+The `riotu-labs.py` script downloads usable `.csv` files directly into `data/clean/riotu-labs`. The format is already correct and usable.
 
+### Generated trajectories
+
+The `generate_random_trajectories.py` script generates random trajectories and requires some extract parameters. Learn more by reading the code.
 
 ## Things done
 
