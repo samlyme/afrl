@@ -2,6 +2,21 @@
 
 Research for drone trajectory prediction.
 
+## Dependencies
+
+The dependencies of this project are managed with `uv` and python virtual environments. 
+
+Install `uv` (if not already installed):
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+Install dependencies and activate virtual environment.
+```bash
+uv sync
+source .venv/bin/activate
+```
+
 ## Getting the data
 
 All the data is stored in the `data` directory. 
