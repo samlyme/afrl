@@ -1,8 +1,35 @@
 import os
+import subprocess
 import h5py
 from h5py import Dataset
 import numpy as np
 import pandas as pd
+
+
+def download_and_unzip(out_dir = "data/dirty/mid-air", download_config = "data/scripts/mid-air_sources.txt"):
+    # Ensure the output directory exists
+    os.makedirs(out_dir, exist_ok=True)
+
+    # Download files using wget
+    wget_command = [
+        "wget",
+        "--content-disposition",
+        "-x",
+        "-nH",
+        "-P",
+        out_dir,
+        "-i",
+        download_config,
+    ]
+    subprocess.run(wget_command, check=True)
+
+    # Find and unzip files
+    for root, _, files in os.walk(out_dir):
+        for filename in files:
+            if filename.endswith(".zip"):
+                zip_filepath = os.path.join(root, filename)
+                unzip_command = ["unzip", "-o", "-d", os.path.dirname(zip_filepath), zip_filepath]
+                subprocess.run(unzip_command, check=True)
 
 # MID-AIR position data is sampled at 100hz
 def process_hdf5(path: str) -> list[pd.DataFrame]:
@@ -45,6 +72,8 @@ def walk_and_process(path: str) -> list[pd.DataFrame]:
 
 
 def main():
+    download_and_unzip()
+    
     all_pos: list[pd.DataFrame] = walk_and_process("data/dirty/mid-air")
     out_dir = "data/clean/mid-air"
     os.makedirs(out_dir, exist_ok=True)
