@@ -12,6 +12,7 @@ dependencies = [
     "jupyter>=1.1.1",
     "matplotlib>=3.10.3",
     "pandas>=2.3.0",
+    "standard-imghdr>=3.13.0",
     "tensorboard>=2.19.0",
     "torch>=2.7.1",
     "torchvision>=0.22.1",
