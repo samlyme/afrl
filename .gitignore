@@ -3,3 +3,4 @@ data/*
 !data/scripts
 .ipynb_checkpoints
 best_models
+runs
