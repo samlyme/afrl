@@ -222,7 +222,7 @@ class TrajectoryPredictor(nn.Module):
 # 
 # Setting up and running the training process.
 
-# In[10]:
+# In[ ]:
 
 
 from datetime import datetime
@@ -235,9 +235,9 @@ train_dataset = TrajectoryDataset(fold['train'], X_len, y_len)
 validation_dataset = TrajectoryDataset(fold['validation'], X_len, y_len)
 test_dataset = TrajectoryDataset(fold['test'], X_len, y_len)
 
-train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=10)
-validation_loader = torch.utils.data.DataLoader(validation_dataset, batch_size=10)
-test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=10)
+train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=10, shuffle=True)
+validation_loader = torch.utils.data.DataLoader(validation_dataset, batch_size=10, shuffle=True)
+test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=10, shuffle=True)
 
 
 # In[ ]:
@@ -256,7 +256,7 @@ print("using device: ", device)
 model.to(device)
 
 # NOTE: When continuing training, remember to load the most recent model
-model.load_state_dict(torch.load("best_models/model_20250708_205742_4"))
+model.load_state_dict(torch.load("best_models/model_20250709_185323_12"))
 
 
 loss_fn = torch.nn.MSELoss()
