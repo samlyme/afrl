@@ -7,7 +7,7 @@
 # 
 # You must run everything in "scripts" before running this file.
 
-# In[ ]:
+# In[1]:
 
 
 import os
@@ -22,7 +22,7 @@ from tqdm.notebook import tqdm
 # 
 # 5-fold stratified cross validation. Must be stratified because training data comes from different distributions.
 
-# In[ ]:
+# In[6]:
 
 
 from math import floor
@@ -35,7 +35,7 @@ class Fold(TypedDict):
     validation: list[str]
     test: list[str]
 
-root = "data/velocity/raw"
+root = "data/velocity/max_norm"
 strata = os.listdir(root)
 k: int = 5
 shuffle = False
@@ -70,7 +70,7 @@ for stratum in strata:
 # 
 # I optimized it in the most practical way, balancing ram usage and conversion overheads.
 
-# In[ ]:
+# In[5]:
 
 
 class TrajectoryDataset(torch.utils.data.Dataset):
@@ -147,7 +147,7 @@ class TrajectoryDataset(torch.utils.data.Dataset):
 # 
 # Currently a basic GRU encoder-decoder.
 
-# In[ ]:
+# In[4]:
 
 
 import torch
@@ -218,11 +218,11 @@ class TrajectoryPredictor(nn.Module):
         return predicted_trajectory
 
 
-# ### Basic training
+# ### Training
 # 
-# Actual training will happen in another script due to limitations of slurm.
+# Setting up and running the training process.
 
-# In[ ]:
+# In[10]:
 
 
 from datetime import datetime
@@ -239,6 +239,10 @@ train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=10)
 validation_loader = torch.utils.data.DataLoader(validation_dataset, batch_size=10)
 test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=10)
 
+
+# In[ ]:
+
+
 model = TrajectoryPredictor(
     input_features_dim=3,
     hidden_state_dim=64,
@@ -246,6 +250,14 @@ model = TrajectoryPredictor(
     num_gru_layers=2,
     prediction_sequence_length=y_len
 )
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print("using device: ", device)
+model.to(device)
+
+# NOTE: When continuing training, remember to load the most recent model
+model.load_state_dict(torch.load("best_models/model_20250708_205742_4"))
+
 
 loss_fn = torch.nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
@@ -260,6 +272,8 @@ def train_one_epoch(epoch_index, tb_writer):
     for i, data in tqdm(enumerate(train_loader), "train_dataset"):
         # Every data instance is an input + label pair
         inputs, labels = data
+        inputs = inputs.to(device)
+        labels = labels.to(device)
 
         # Zero your gradients for every batch!
         optimizer.zero_grad()
@@ -289,7 +303,7 @@ def train_one_epoch(epoch_index, tb_writer):
 timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
 writer = SummaryWriter("runs/afrl_trainer_{}".format(timestamp))
 
-EPOCHS = 5
+EPOCHS = 1000
 
 best_vloss = 1_000_000.
 
@@ -308,6 +322,8 @@ for epoch in tqdm(range(EPOCHS), "epoch"):
     with torch.no_grad():
         for i, vdata in enumerate(validation_loader):
             vinputs, vlabels = vdata
+            vinputs = vinputs.to(device)
+            vlabels = vlabels.to(device)
             voutputs = model(vinputs)
             vloss = loss_fn(voutputs, vlabels)
             running_vloss += vloss
@@ -325,6 +341,8 @@ for epoch in tqdm(range(EPOCHS), "epoch"):
     # Track best performance, and save the model's state
     if avg_vloss < best_vloss:
         best_vloss = avg_vloss
-        model_path = 'model_{}_{}'.format(timestamp, epoch)
-        torch.save(model.state_dict, model_path)
+        model_path = os.path.join("best_models", 'model_{}_{}'.format(timestamp, epoch + 1))
+        torch.save(model.state_dict(), model_path)
 
+
+# ## Visualize model output
