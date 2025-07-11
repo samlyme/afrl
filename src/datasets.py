@@ -5,6 +5,7 @@ import random
 from typing import TypedDict
 import numpy as np
 import pandas as pd
+from pydantic import BaseModel, ValidationError
 import torch
 
 
@@ -76,7 +77,7 @@ class TrajectoryDataset(torch.utils.data.Dataset):
         return x_tensor, y_tensor
     
 
-class Fold(TypedDict):
+class Fold(BaseModel):
     train: list[str]
     validation: list[str]
     test: list[str]
@@ -86,7 +87,7 @@ def generate_folds(
     root: str, strata: list[str], k: int = 5, shuffle: bool = False,
 ) -> list[Fold] :
     folds: list[Fold] = [
-        {"train": [], "validation": [], "test": []}
+        Fold(train=[], validation=[], test=[])
         for _ in range(k)
     ]
     # Assume all csv's have unique names
@@ -106,17 +107,26 @@ def generate_folds(
             fold_train = floor(len(fold) * 0.65)
             fold_validation = floor(len(fold) * 0.85)
 
-            folds[i]["train"].extend(
+            folds[i].train.extend(
                 [os.path.realpath(os.path.join(root, stratum, f)) for f in fold[0 : fold_train]]
             )
-            folds[i]["validation"].extend(
+            folds[i].validation.extend(
                 [os.path.realpath(os.path.join(root, stratum, f)) for f in fold[fold_train : fold_validation]]
             )
-            folds[i]["test"].extend(
+            folds[i].test.extend(
                 [os.path.realpath(os.path.join(root, stratum, f)) for  f in fold[fold_validation :]]
             )
     return folds
 
-def save_folds(folds: list[Fold], output_file: str):
+def save_folds(folds: list[Fold], output_file: str = "data/folds.json"):
     with open(output_file, "w", encoding="utf-8") as f:
         json.dump(folds, f, indent=4)
+
+def read_folds(file_path: str = "data/folds.json") -> list[Fold]:
+    with open(file_path, 'r', encoding='utf-8') as f:
+        raw_data = json.load(f) # Load the raw list of dicts
+
+    validated_folds: list[Fold] = [Fold(**item) for item in raw_data]
+
+    return validated_folds
+    
