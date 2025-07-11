@@ -117,19 +117,6 @@ def generate_folds(
             )
     return folds
 
-def main():
-    root="data/velocity/max_norm"
-    strata = os.listdir(root)
-    folds: list[Fold] = generate_folds(
-        root=root, 
-        strata=strata, 
-        k = 5, 
-        shuffle = False
-    )
-
-    output_file = "data/folds.json"
+def save_folds(folds: list[Fold], output_file: str):
     with open(output_file, "w", encoding="utf-8") as f:
         json.dump(folds, f, indent=4)
-
-if __name__ == "__main__":
-    main()
