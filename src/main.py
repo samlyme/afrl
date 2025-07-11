@@ -133,6 +133,7 @@ class Trainer:
 
         return last_loss
 
+# TODO: implement cli args
 def main():
     folds = read_folds("data/folds.json")
     fold = folds[0]
@@ -156,7 +157,7 @@ def main():
         num_gru_layers=2,
         prediction_sequence_length=y_len
     )
-    model.load_state_dict(torch.load("best_models/model_20250709_190452_66"))
+    model.load_state_dict(torch.load("best_models/model_20250711_150450"))
     model.to(device)
 
     trainer = Trainer(
@@ -169,7 +170,7 @@ def main():
         device=device
     )
 
-    trainer.train_epochs(5)
+    trainer.train_epochs(1000)
 
 if __name__ == "__main__":
     main()

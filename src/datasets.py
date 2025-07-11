@@ -83,6 +83,7 @@ class Fold(BaseModel):
     test: list[str]
 
 
+# TODO: Fix this lmao
 def generate_folds(
     root: str, strata: list[str], k: int = 5, shuffle: bool = False,
 ) -> list[Fold] :
