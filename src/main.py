@@ -3,6 +3,9 @@ import os
 import torch
 import torch.utils.tensorboard
 
+from src.datasets import TrajectoryDataset, read_folds
+from src.models import TrajectoryPredictor
+
 
 class Trainer:
     """
@@ -87,7 +90,7 @@ class Trainer:
             # Track best performance, and save the model's state
             if avg_vloss < best_vloss:
                 best_vloss = avg_vloss
-                model_path = os.path.join("best_models", 'model_{}_{}'.format(epoch + 1))
+                model_path = os.path.join("best_models", f"model_{datetime.now().strftime('%Y%m%d_%H%M%S')}")
                 torch.save(self.model.state_dict(), model_path)
 
     def train_epoch(
@@ -129,3 +132,44 @@ class Trainer:
                 running_loss = 0.
 
         return last_loss
+
+def main():
+    folds = read_folds("data/folds.json")
+    fold = folds[0]
+
+    X_len, y_len = 20, 10
+    train_dataset = TrajectoryDataset(fold.train, X_len, y_len)
+    validation_dataset = TrajectoryDataset(fold.validation, X_len, y_len)
+    test_dataset = TrajectoryDataset(fold.test, X_len, y_len)
+
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=10, shuffle=True)
+    validation_loader = torch.utils.data.DataLoader(validation_dataset, batch_size=10, shuffle=True)
+    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=10, shuffle=True)
+
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    model=TrajectoryPredictor(
+        input_features_dim=3,
+        hidden_state_dim=64,
+        output_features_dim=3,
+        num_gru_layers=2,
+        prediction_sequence_length=y_len
+    )
+    model.load_state_dict(torch.load("best_models/model_20250709_190452_66"))
+    model.to(device)
+
+    trainer = Trainer(
+        model=model,
+        optimizer=torch.optim.Adam(model.parameters(), lr=0.001),
+        loss_fn=torch.nn.MSELoss(),
+        train_loader=train_loader,
+        validation_loader=validation_loader,
+        test_loader=test_loader,
+        device=device
+    )
+
+    trainer.train_epochs(5)
+
+if __name__ == "__main__":
+    main()
