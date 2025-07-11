@@ -4,3 +4,4 @@ data/*
 .ipynb_checkpoints
 best_models
 runs
+src/__pycache__
