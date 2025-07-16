@@ -2,6 +2,9 @@
 
 Research for drone trajectory prediction.
 
+## TODO:
+- Move preprocessing scripts outside of notebooks.
+
 ## Dependencies
 
 The dependencies of this project are managed with `uv` and python virtual environments. 
