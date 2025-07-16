@@ -1,9 +1,10 @@
+import argparse
 from datetime import datetime
 import os
 import torch
 import torch.utils.tensorboard
 
-from src.datasets import TrajectoryDataset, read_folds
+from src.datasets import Fold, Split, TrajectoryDataset, read_split
 from src.models import TrajectoryPredictor
 
 
@@ -66,7 +67,6 @@ class Trainer:
             # Set the model to evaluation mode, disabling dropout and using population
             # statistics for batch normalization.
             self.model.eval()
-
             # Disable gradient computation and reduce memory consumption.
             with torch.no_grad():
                 for i, vdata in enumerate(self.validation_loader):
@@ -86,6 +86,7 @@ class Trainer:
                             { 'Training' : avg_loss, 'Validation' : avg_vloss },
                             epoch + 1)
             self.writer.flush()
+            # TODO: implement early stopping
 
             # Track best performance, and save the model's state
             if avg_vloss < best_vloss:
@@ -135,14 +136,64 @@ class Trainer:
 
 # TODO: implement cli args
 def main():
-    folds = read_folds("data/folds.json")
-    fold = folds[0]
+    parser = argparse.ArgumentParser(
+        description="Train models with specific data and hyperparameters."
+    )
 
+    parser.add_argument(
+        "name",
+        type=str,
+        help="The name of this training job. Used for tensorboard reporting."
+    )
+
+    parser.add_argument(
+        "-s",
+        "--split",
+        type=str,
+        required=True,
+        help="Path to a valid .json file that specifies the data split for k-fold CV."
+    )
+
+    parser.add_argument(
+        "-f",
+        "--fold",
+        type=int,
+        required=True,
+        help="Specifies the specific fold to train on. Must be within the range of folds in split. Zero-indexed."
+    )
+
+    parser.add_argument(
+        "-m",
+        "--model",
+        type=str,
+        help="Specifies a modelfile to start from. If not specified, model will start from scratch."
+    )
+
+    parser.add_argument(
+        "-e",
+        "--epoch",
+        type=int,
+        default=0,
+        help="Specifies the starting epoch. Useful for when jobs are interupted."
+    )
+
+    
+    args = parser.parse_args()
+    
+
+    split: Split = read_split(args.split)
+    if args.fold >= len(split.folds):
+        raise Exception("Invalid fold index.")
+
+    fold: Fold = split.folds[args.fold]
+
+    # TODO: (MAYBE) implement sequence lengths as hyperparameters
     X_len, y_len = 20, 10
     train_dataset = TrajectoryDataset(fold.train, X_len, y_len)
     validation_dataset = TrajectoryDataset(fold.validation, X_len, y_len)
-    test_dataset = TrajectoryDataset(fold.test, X_len, y_len)
+    test_dataset = TrajectoryDataset(split.test, X_len, y_len)
 
+    # TODO: (MAYBE) Implement custom sampler
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=10, shuffle=True)
     validation_loader = torch.utils.data.DataLoader(validation_dataset, batch_size=10, shuffle=True)
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=10, shuffle=True)
@@ -150,6 +201,7 @@ def main():
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+    # TODO: Implement model config object that can be saved.
     model=TrajectoryPredictor(
         input_features_dim=3,
         hidden_state_dim=64,
@@ -157,7 +209,7 @@ def main():
         num_gru_layers=2,
         prediction_sequence_length=y_len
     )
-    model.load_state_dict(torch.load("best_models/model_20250711_150450"))
+    model.load_state_dict(torch.load("best_models/model_20250711_172714"))
     model.to(device)
 
     trainer = Trainer(
