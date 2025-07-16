@@ -1,4 +1,5 @@
-import json
+import argparse
+import datetime
 from math import floor
 import os
 import random
@@ -79,54 +80,139 @@ class TrajectoryDataset(torch.utils.data.Dataset):
 class Fold(BaseModel):
     train: list[str]
     validation: list[str]
+
+class Split(BaseModel):
     test: list[str]
+    folds: list[Fold]
 
+def abs_path(root: str, stratum: str, file: str):
+    return os.path.abspath(os.path.join(root, stratum, file))
 
-# TODO: Fix this lmao
-def generate_folds(
-    root: str, strata: list[str], k: int = 5, shuffle: bool = False,
-) -> list[Fold] :
+def generate_split(
+    root: str, k: int = 5, shuffle: bool = False, seed: int = 1
+) -> Split :
+    strata = os.listdir(root)
+
     folds: list[Fold] = [
-        Fold(train=[], validation=[], test=[])
+        Fold(train=[], validation=[])
         for _ in range(k)
     ]
+    split = Split(test=[], folds=folds)
+
     # Assume all csv's have unique names
     for stratum in strata:
         files = os.listdir(os.path.join(root, stratum))
         if shuffle:
+            random.seed(seed)
             random.shuffle(files)
 
         m = len(files)
         
+        # Global test set
+        test_size = floor(m * 0.10)
+        if test_size == 0: 
+            raise Exception("Dataset too small, not enough for test set")
+
+        split.test.extend(abs_path(root, stratum, x) for x in files[0:test_size])
+
+        fold_set = files[test_size:]
+        val_size = len(fold_set) // k
+        if test_size == 0: 
+            raise Exception("Dataset too small, not enough for validation set")
         for i in range(k):
-            fold_start = floor(m * (i/k))
-            fold_end = floor(m * ((i+1)/k))
-            
-            fold = files[fold_start:fold_end]
+            val_start = i * val_size
+            val_end = (i + 1) * val_size
 
-            fold_train = floor(len(fold) * 0.65)
-            fold_validation = floor(len(fold) * 0.85)
+            folds[i].train.extend(abs_path(root, stratum, x) for x in fold_set[:val_start])
+            folds[i].validation.extend(abs_path(root, stratum, x) for x in fold_set[val_start:val_end])
+            folds[i].train.extend(abs_path(root, stratum, x) for x in fold_set[val_end:])
 
-            folds[i].train.extend(
-                os.path.realpath(os.path.join(root, stratum, f)) for f in fold[0 : fold_train]
-            )
-            folds[i].validation.extend(
-                os.path.realpath(os.path.join(root, stratum, f)) for f in fold[fold_train : fold_validation]
-            )
-            folds[i].test.extend(
-                os.path.realpath(os.path.join(root, stratum, f)) for  f in fold[fold_validation :]
-            )
-    return folds
+    return split
 
-def save_folds(folds: list[Fold], output_file: str = "data/folds.json"):
+def save_split(split: Split, output_file: str | None = None):
+    if not output_file:
+        current_time = datetime.datetime.now()
+        timestamp_str = current_time.strftime("%Y%m%d_%H%M%S_%f")[:-3]
+        output_file = f"data/data_split_{timestamp_str}.json"
+
     with open(output_file, "w", encoding="utf-8") as f:
-        json.dump(folds, f, indent=4)
+        f.write(split.model_dump_json(indent=2))
 
-def read_folds(file_path: str = "data/folds.json") -> list[Fold]:
+def read_split(file_path: str) -> Split:
     with open(file_path, 'r', encoding='utf-8') as f:
-        raw_data = json.load(f) # Load the raw list of dicts
-
-    validated_folds: list[Fold] = [Fold(**item) for item in raw_data]
-
-    return validated_folds
+        raw_data = f.read()
     
+    try:
+        return Split.model_validate_json(raw_data)
+
+    except Exception as e:
+        raise e
+
+# TODO: implement CLI args
+def main():
+    parser = argparse.ArgumentParser(
+        description="Generate a data split for machine learning experiments."
+    )
+
+    # Required positional argument for 'root'
+    parser.add_argument(
+        "root",
+        type=str,
+        help="The root directory path for the dataset.",
+    )
+
+    # Optional argument for 'k' with a default value
+    parser.add_argument(
+        "-k",
+        "--k-folds",
+        type=int,
+        default=5,  # Matches the function's default
+        help="The number of folds/splits to generate (default: 5).",
+    )
+
+    # Optional argument for 'shuffle'
+    # Now, if --shuffle is present, it will set shuffle to True.
+    # If it's absent, args.shuffle will default to False.
+    parser.add_argument(
+        "--shuffle", # <--- Changed flag name to positive
+        action="store_true", # <--- Changed action to store_true
+        # Removed 'dest' because it's inferred correctly now as 'shuffle'
+        help="Enable shuffling of data before splitting. (Default: NO shuffle)",
+    )
+
+    # Optional argument for 'seed' with a default value
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=1,  # Matches the function's default
+        help="The random seed for reproducibility (default: 1).",
+    )
+
+    parser.add_argument(
+        "-o",
+        "--output",
+        type=str,
+        default=None,
+        help="Optional: Path to save the generated split. "
+             "If not provided, a default timestamped file in 'data/' will be created.",
+    )
+
+
+    args = parser.parse_args()
+
+    # Call the generate_split function with the parsed arguments
+    # The attributes of 'args' directly correspond to the argument names defined.
+    result_split = generate_split(
+        root=args.root,
+        k=args.k_folds,  # Use args.k_folds because we named it '--k-folds'
+        shuffle=args.shuffle,
+        seed=args.seed,
+    )
+    
+    if args.output: 
+        save_split(result_split, args.output)
+    else:
+        print(result_split.model_dump_json(indent=2))
+
+if __name__ == "__main__":
+    main()
