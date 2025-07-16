@@ -2,10 +2,9 @@ import json
 from math import floor
 import os
 import random
-from typing import TypedDict
 import numpy as np
 import pandas as pd
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel
 import torch
 
 
@@ -109,13 +108,13 @@ def generate_folds(
             fold_validation = floor(len(fold) * 0.85)
 
             folds[i].train.extend(
-                [os.path.realpath(os.path.join(root, stratum, f)) for f in fold[0 : fold_train]]
+                os.path.realpath(os.path.join(root, stratum, f)) for f in fold[0 : fold_train]
             )
             folds[i].validation.extend(
-                [os.path.realpath(os.path.join(root, stratum, f)) for f in fold[fold_train : fold_validation]]
+                os.path.realpath(os.path.join(root, stratum, f)) for f in fold[fold_train : fold_validation]
             )
             folds[i].test.extend(
-                [os.path.realpath(os.path.join(root, stratum, f)) for  f in fold[fold_validation :]]
+                os.path.realpath(os.path.join(root, stratum, f)) for  f in fold[fold_validation :]
             )
     return folds
 
