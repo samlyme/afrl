@@ -148,20 +148,17 @@ def read_split(file_path: str) -> Split:
     except Exception as e:
         raise e
 
-# TODO: implement CLI args
 def main():
     parser = argparse.ArgumentParser(
         description="Generate a data split for machine learning experiments."
     )
 
-    # Required positional argument for 'root'
     parser.add_argument(
         "root",
         type=str,
         help="The root directory path for the dataset.",
     )
 
-    # Optional argument for 'k' with a default value
     parser.add_argument(
         "-k",
         "--k-folds",
@@ -170,21 +167,16 @@ def main():
         help="The number of folds/splits to generate (default: 5).",
     )
 
-    # Optional argument for 'shuffle'
-    # Now, if --shuffle is present, it will set shuffle to True.
-    # If it's absent, args.shuffle will default to False.
     parser.add_argument(
-        "--shuffle", # <--- Changed flag name to positive
-        action="store_true", # <--- Changed action to store_true
-        # Removed 'dest' because it's inferred correctly now as 'shuffle'
+        "--shuffle",
+        action="store_true",
         help="Enable shuffling of data before splitting. (Default: NO shuffle)",
     )
 
-    # Optional argument for 'seed' with a default value
     parser.add_argument(
         "--seed",
         type=int,
-        default=1,  # Matches the function's default
+        default=1, 
         help="The random seed for reproducibility (default: 1).",
     )
 
