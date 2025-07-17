@@ -138,6 +138,7 @@ def main():
         "--all",
         action="store_true",
         help="Derives vel and acc, then normalizes vel and acc."
+        "NOTE: This does not specify which datasets to include, just what actions to perform on the datasets."
     )
     
     parser.add_argument(
