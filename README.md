@@ -4,7 +4,6 @@ Research for drone trajectory prediction.
 
 ## TODO:
 - Implement a "true" test of model accuracy that integrates the velocity prediction to find position.
-- Refactor scripts into one python module.
 - Implement model hyperparameter configuration.
 
 ## Dependencies
