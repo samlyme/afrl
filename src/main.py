@@ -29,8 +29,9 @@ class Trainer:
         train_loader: torch.utils.data.DataLoader,
         validation_loader: torch.utils.data.DataLoader,
         test_loader: torch.utils.data.DataLoader,
-        device: torch.device | None = None,
-        writer: torch.utils.tensorboard.SummaryWriter | None = None
+        device: torch.device,
+        writer: torch.utils.tensorboard.SummaryWriter,
+        model_path: str,
     ):
         self.model = model
         self.optimizer = optimizer
@@ -40,18 +41,13 @@ class Trainer:
         self.validation_loader = validation_loader
         self.test_loader = test_loader
 
-        if device:
-            self.device = device
-        else:
-            self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = device
         print("using device ", self.device)
 
-        if writer:
-            self.writer = writer
-        else:
-            self.writer = torch.utils.tensorboard.SummaryWriter(
-                f"runs/afrl_trainer_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-            )
+        self.writer = writer
+
+        self.model_path = model_path
+        os.makedirs(model_path, exist_ok=True)
 
     
     def train_epochs(
@@ -91,8 +87,7 @@ class Trainer:
             # Track best performance, and save the model's state
             if avg_vloss < best_vloss:
                 best_vloss = avg_vloss
-                model_path = os.path.join("best_models", f"model_{datetime.now().strftime('%Y%m%d_%H%M%S')}")
-                torch.save(self.model.state_dict(), model_path)
+                torch.save(self.model.state_dict(), os.path.join(self.model_path, f"model_{datetime.now()}"))
 
     def train_epoch(
         self,
@@ -134,7 +129,6 @@ class Trainer:
 
         return last_loss
 
-# TODO: implement cli args
 def main():
     parser = argparse.ArgumentParser(
         description="Train models with specific data and hyperparameters."
@@ -166,15 +160,8 @@ def main():
         "-m",
         "--model",
         type=str,
+        default=None,
         help="Specifies a modelfile to start from. If not specified, model will start from scratch."
-    )
-
-    parser.add_argument(
-        "-e",
-        "--epoch",
-        type=int,
-        default=0,
-        help="Specifies the starting epoch. Useful for when jobs are interupted."
     )
 
     
@@ -209,7 +196,10 @@ def main():
         num_gru_layers=2,
         prediction_sequence_length=y_len
     )
-    model.load_state_dict(torch.load("best_models/model_20250711_172714"))
+
+    if args.model:
+        model.load_state_dict(torch.load("best_models/model_20250711_172714"))
+
     model.to(device)
 
     trainer = Trainer(
@@ -219,7 +209,9 @@ def main():
         train_loader=train_loader,
         validation_loader=validation_loader,
         test_loader=test_loader,
-        device=device
+        device=device,
+        writer=torch.utils.tensorboard.SummaryWriter(f"experiments/logs/{args.name}"),
+        model_path=f"experiments/models/{args.name}"
     )
 
     trainer.train_epochs(1000)
