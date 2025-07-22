@@ -7,4 +7,4 @@ runs
 src/__pycache__
 experiments
 paper/*
-!paper/main.tex
+!paper/*.tex
