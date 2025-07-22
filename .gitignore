@@ -5,3 +5,4 @@ data/*
 best_models
 runs
 src/__pycache__
+experiments
