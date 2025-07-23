@@ -112,7 +112,7 @@
 \end{frame}
 
 \begin{frame}[standout]
-    What is Machine Learning and Deep Learning?
+    What is Machine Learning/Deep Learning?
 \end{frame}
 
 \begin{frame}
@@ -129,26 +129,42 @@
     \includegraphics[width=0.5\textwidth]{resources/aimldl.png}
 \end{frame}
 
-\begin{frame}
-    \frametitle{Why Machine Learning?}
-    
-    Traditional mathematical techniques break down in non-linear and 
-    non-deterministic environments.
-
-    The decisions of the pilot is \textbf{practically impossible} to model 
-    mathematically.
+\begin{frame}[standout]
+    Why Machine Learning?
 \end{frame}
 
 \begin{frame}
-    \frametitle{Why Machine Learning? cont.}
-
-    Consider a cyclist.
+    \frametitle{Why Machine Learning?}
+    
+    Predicting the path of a cyclist is a slightly simpler problem.
     
     \centering
     \includegraphics[width=0.9\textwidth]{resources/countersteering.jpg}
 
     \emph{A slight turn right is actually \textbf{signal} that the bike will
     make a larger turn left!}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Why Machine Learning? cont.}
+
+    There are \alert{many} maneuvers/patterns used by FPV UAV drones.
+
+    They all have some sort of \alert{setup}, which can be used as a predictive
+    signal for its future position.
+    
+    \centering
+    \includegraphics[width=0.8\textwidth]{resources/fpvmaneuvers.png}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Why Machine Learning? cont.}
+
+    Traditional mathematical techniques break down in non-linear and 
+    non-deterministic environments.
+
+    The decisions of the pilot is \textbf{practically impossible} to model 
+    mathematically.
 \end{frame}
 
 \begin{frame}
@@ -164,6 +180,10 @@
     at picking up on these \textbf{signals} in \textbf{noisy} data.
 \end{frame}
 
+\begin{frame}[standout]
+    How do we use Machine Learning?
+\end{frame}
+
 \begin{frame}
     \frametitle{How Machine Learning?}
 
@@ -173,10 +193,21 @@
     The training process continually updates $\theta$, so that the predictions 
     of our model $F_\theta(X) = \hat{Y}$ gets closer to $Y$.
 
-    \pause
+    At each iteration, we find the \textbf{loss} of our model $L(\theta)$.
+
+    Thus, our \alert{optimal} model weights $\theta^*$ is found by minimizing
+    the loss function.
+    
+    $$ \theta^* = \underset{\theta}{\text{arg min}}\  L(\theta)$$
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{Existing Techniques}
+
     Our problem is now a \alert{sequence to sequence} (seq2seq) prediction problem.
     
-    Exisiting deep learning techniques:
+    Existing techniques:`'
     \begin{itemize}
         \item {
             \textbf{Encoder-decoder architectures} with various neural networks 
@@ -192,6 +223,8 @@
             \textbf{Informer} models
         }
     \end{itemize}
+
+    \emph{These techniques actually form the foundation for LLM's like ChatGPT!}
 \end{frame}
 
 
