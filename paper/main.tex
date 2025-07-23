@@ -1,20 +1,66 @@
 \documentclass{article}
 \begin{document}
-First document. This is a simple example, with no 
-extra parameters or packages included.
 
-\begin{itemize}
-    \item This is a list.
-    \item Look at the items!
-\end{itemize}
+\title{
+    Exploring Deep Learning Techniques for Long Term Compute-Constrained UAV Trajectory Prediction
+}
 
-\begin{enumerate}
-    \item Now we have an ordered list.
-    \item Look at the numbers.
-\end{enumerate}
+\author{
+    Shokoufeh Mirzaei
+    \and Sam Ly
+    \and Anna Chiu
+    \and Megan Bee
+    \and Ray Tan
+    \and Sidd Raj
+}
 
-Check out this math!
-$$ 2 = \frac{3}{2} + \frac{1}{2} $$
-$$ \frac{n(n+1)}{2} = \sum_{i=1}^{n} i $$
-$$ x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a} $$
+\date{\today}
+
+\maketitle
+
+\begin{abstract}
+    The ability to predict the flight paths of UAV in real-time dynamic 
+    environments accurately is critical to many applications in commercial and 
+    defense environments. UAV flight dynamics are uniquely hard to model due to 
+    their non-linear nature, and the numerous unaccountable variables. 
+    Furthermore, the influence of the pilot introduces a non-deterministic 
+    element to UAV flight paths. Consequently, most  modern trajectory 
+    prediction models rely on data-driven techniques to overcome these 
+    challenges. In our research, we explore deep learning techniques, taking 
+    advantage of an encoder-decoder architecture along with various neural 
+    networks for performing sequence to sequence prediction. 
+\end{abstract}
+
+\noindent\textbf{Keywords:} Deep Learning, Neural Networks, Drones, Transformers, LSTM, Informer, Encoder-decoder
+
+\section{Introduction}
+\subsection{Problem Statement}
+The problem of "UAV trajectory prediction" can be formalized as a function $F$ 
+that maps a list of length $n$ of \textbf{recorded points} $X$ to a list of 
+length $m$ of \textbf{predicted points} $Y$. The values $n$ and $m$ are the 
+\textbf{input sequence length} and \textbf{output sequence length} respectively.
+
+Since we are performing this task in 3D space, each \textbf{point} ($x_i$ and 
+$y_i$) is actually a vector in $R^3$. Thus,
+$$ X = \{x_1, x_2, ..., x_n\}, Y = \{y_1, y_2, ..., y_m\} $$ 
+$$ x_i \in R^3, y_j \in R^3 $$
+$$ Y = F(X) $$
+
+We can also see that $X$ and $Y$ can also be thought of as an $n \times 3$
+matrix and $m \times 3$ matrix respectively. Thus our final definition becomes:
+
+$$ F: R^{n \times 3} \to R^{m \times 3} $$
+
+Viewing $X$ and $Y$ as a list of points is more intuitive, but view them as 
+matrices allows us to more clearly visualize computations.
+
+Note that our definition of the input sequence $X$ and output sequence $Y$ does 
+not include any information about the time. Instead, the time is encoded
+\textbf{implicity} via the order of points $x_i$. Consequently, our model
+expects the timestep to remain constant. Other models may use time as a feature
+of the input sequence, allowing for predictions accross varying timescales.
+
+\section{Methods}
+\section{Results}
+\section{Discussion}
 \end{document}
