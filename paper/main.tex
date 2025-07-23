@@ -1,4 +1,5 @@
 \documentclass{article}
+\usepackage{amsmath}
 \begin{document}
 
 \title{
@@ -31,7 +32,7 @@
     networks for performing sequence to sequence prediction. 
 \end{abstract}
 
-\noindent\textbf{Keywords:} Deep Learning, Neural Networks, Drones, Transformers, LSTM, Informer, Encoder-decoder
+% \noindent\textbf{Keywords:} Deep Learning, Neural Networks, Drones, Transformers, LSTM, Informer, Encoder-decoder
 
 \section{Introduction}
 \subsection{Problem Statement}
@@ -43,7 +44,9 @@ length $m$ of \textbf{predicted points} $\hat{Y}$. The values $n$ and $m$ are th
 Since we are performing this task in 3D space, each \textbf{point} ($x_i$ and 
 $\hat{y_i}$) is actually a vector in $R^3$. Thus,
 $$ X = \{x_1, x_2, ..., x_n\}, \hat{Y} = \{\hat{y}_1, \hat{y}_2, ..., \hat{y}_m\} $$ 
-$$ x_i \in R^3, \hat{y}_j \in R^3 $$
+$$ x_i \in R^3 \text{, for } i \in [1, n]$$
+$$\hat{y}_j \in R^3 \text{, for } j \in [1, m]$$
+and,
 $$ \hat{Y} = F(X) $$
 
 We can also see that $X$ and $\hat{Y}$ can also be thought of as an $n \times 3$
@@ -51,15 +54,22 @@ matrix and $m \times 3$ matrix respectively. Thus our final definition becomes:
 
 $$ F: R^{n \times 3} \to R^{m \times 3} $$
 
-Viewing $X$ and $\hat{Y}$ as a list of points is more intuitive, but view them as 
-matrices allows us to more clearly visualize computations.
+Viewing $X$ and $\hat{Y}$ as a list of points is more intuitive, but viewing 
+them as matrices allows us to more clearly visualize computations.
 
-Note that our definition of the input sequence $X$ and output sequence $\hat{Y}$ does 
-not include any information about the time. Instead, the time is encoded
+Note that our definition of the input sequence $X$ and output sequence $\hat{Y}$ 
+does not include any information about the time. Instead, the time is encoded
 \textbf{implicity} via the ordering of points $x_i$. Consequently, our model
 expects the timestep to remain constant. Other models may use time as a feature
-of the input sequence, allowing for predictions accross varying timescales.
+of the input sequence. (citation needed)
 
+Since we are using machine learning approach, we must define a loss function $L$
+between our prediction $\hat{Y}$, and the actual future path $Y$. We choose to 
+define $L$ as a function of the \textbf{model parameters} $\theta$. Thus, our 
+\textbf{optimal model parameters} $\theta^*$ is the set of model parameters that 
+minimizes our loss $L$. (cite ian goodfellow)
+
+$$ \theta^* = \underset{\theta}{\text{arg min}}\  L(\theta)$$
 
 \section{Methods}
 \section{Results}
