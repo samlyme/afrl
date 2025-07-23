@@ -1,1 +1,3 @@
 $ENV{TEXINPUTS} = ".:./mtheme/:$ENV{TEXINPUTS}";
+$pdflatex = 'xelatex %O %S';
+$pdf_mode = 4;
