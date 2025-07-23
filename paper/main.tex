@@ -51,9 +51,7 @@ $$ \hat{Y} = F(X) $$
 
 We can also see that $X$ and $\hat{Y}$ can also be thought of as an $n \times 3$
 matrix and $m \times 3$ matrix respectively. Thus our final definition becomes:
-
 $$ F: R^{n \times 3} \to R^{m \times 3} $$
-
 Viewing $X$ and $\hat{Y}$ as a list of points is more intuitive, but viewing 
 them as matrices allows us to more clearly visualize computations.
 
@@ -63,13 +61,33 @@ does not include any information about the time. Instead, the time is encoded
 expects the timestep to remain constant. Other models may use time as a feature
 of the input sequence. (citation needed)
 
-Since we are using machine learning approach, we must define a loss function $L$
+Since we are using machine learning approach, our model $F$ is parameterized by
+$\theta$, denoted as $F_{\theta}$. We must define a loss function $L$
 between our prediction $\hat{Y}$, and the actual future path $Y$. We choose to 
 define $L$ as a function of the \textbf{model parameters} $\theta$. Thus, our 
 \textbf{optimal model parameters} $\theta^*$ is the set of model parameters that 
 minimizes our loss $L$. (cite ian goodfellow)
-
 $$ \theta^* = \underset{\theta}{\text{arg min}}\  L(\theta)$$
+Our theorectically optimal model is then denoted as $F_{\theta^*}$.
+
+Ultimately, our problem boils down to a \textbf{sequence to sequence} prediction, 
+of which many machine learning techniques have been devised, namely:
+\begin{itemize}
+    \item {
+        \textbf{Encoder-decoder architectures} with various neural networks 
+        (RNN, CNN, GRU, etc.)
+    }
+    \item {
+        \textbf{LSTM} models
+    }
+    \item {
+        \textbf{Transformer} models
+    }
+    \item {
+        \textbf{Informer} models
+    }
+\end{itemize}
+Our choice of seq2seq model is discussed later in this paper.
 
 \section{Methods}
 \section{Results}
