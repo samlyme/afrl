@@ -61,6 +61,8 @@ does not include any information about the time. Instead, the time is encoded
 expects the timestep to remain constant. Other models may use time as a feature
 of the input sequence. (citation needed)
 
+We can then vary the prediction length by varying $n$ and $m$. 
+
 Since we are using machine learning approach, our model $F$ is parameterized by
 $\theta$, denoted as $F_{\theta}$. We must define a loss function $L$
 between our prediction $\hat{Y}$, and the actual future path $Y$. We choose to 

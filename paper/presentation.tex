@@ -81,6 +81,10 @@
     \end{enumerate}
 \end{frame}
 
+\begin{frame}[standout]
+    Problem Definition
+\end{frame}
+
 \begin{frame}
     \frametitle{Problem definition}
 
@@ -99,11 +103,96 @@
     of \textbf{predicted points} $\hat{Y}$.
 
     $$ X = \{x_1, x_2, ..., x_n\}, \hat{Y} = \{\hat{y}_1, \hat{y}_2, ..., \hat{y}_m\} $$ 
-    $$ x_i \in R^3 \text{, for } i \in [1, n]$$
-    $$\hat{y}_j \in R^3 \text{, for } j \in [1, m]$$
+    $$ x_i \text{, } \hat{y}_j \in R^3$$
     $$ \hat{Y} = F(X) $$
     where $n$ is the length of the input sequence and $m$ is the length of the 
     output/predicted sequence.
+
+    \textbf{Ideally, $\hat{Y}$ should be similar to $Y$.}
 \end{frame}
+
+\begin{frame}[standout]
+    What is Machine Learning and Deep Learning?
+\end{frame}
+
+\begin{frame}
+    \frametitle{What is Machine Learning?}
+
+    \centering
+    \includegraphics[width=0.9\textwidth]{resources/whymldiag.png}
+\end{frame}
+
+\begin{frame}
+    \frametitle{What is Machine Learning? cont.}
+
+    \centering
+    \includegraphics[width=0.5\textwidth]{resources/aimldl.png}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Why Machine Learning?}
+    
+    Traditional mathematical techniques break down in non-linear and 
+    non-deterministic environments.
+
+    The decisions of the pilot is \textbf{practically impossible} to model 
+    mathematically.
+\end{frame}
+
+\begin{frame}
+    \frametitle{Why Machine Learning? cont.}
+
+    Consider a cyclist.
+    
+    \centering
+    \includegraphics[width=0.9\textwidth]{resources/countersteering.jpg}
+
+    \emph{A slight turn right is actually \textbf{signal} that the bike will
+    make a larger turn left!}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Why Machine Learning? cont.}
+
+    Mathematical models break down in complex systems with noisy data.
+
+    To be feasible, assumptions must be made.
+
+    The dynamics of the UAV may change.
+
+    Machine Learning and \textbf{Deep Learning} algorithms are uniquely good 
+    at picking up on these \textbf{signals} in \textbf{noisy} data.
+\end{frame}
+
+\begin{frame}
+    \frametitle{How Machine Learning?}
+
+    $F$ is now \textbf{parameterized} by a set of \textbf{learned weights}
+    $\theta$, denoted $F_\theta$.
+
+    The training process continually updates $\theta$, so that the predictions 
+    of our model $F_\theta(X) = \hat{Y}$ gets closer to $Y$.
+
+    \pause
+    Our problem is now a \alert{sequence to sequence} (seq2seq) prediction problem.
+    
+    Exisiting deep learning techniques:
+    \begin{itemize}
+        \item {
+            \textbf{Encoder-decoder architectures} with various neural networks 
+            (RNN, CNN, GRU, etc.)
+        }
+        \item {
+            \textbf{LSTM} models
+        }
+        \item {
+            \textbf{Transformer} models
+        }
+        \item {
+            \textbf{Informer} models
+        }
+    \end{itemize}
+\end{frame}
+
 
 \end{document}
