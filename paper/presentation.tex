@@ -2,15 +2,32 @@
 
 \usetheme{metropolis}
 \usepackage{amsmath}
+\usepackage{graphicx}
+
+\newcommand{\personcard}[3]{
+    \begin{minipage}{10em}
+        \centering
+        \begin{figure}
+            \includegraphics[
+                width=8em
+            ]{#1}
+        \end{figure}
+        \textbf{#2}
+
+        \small
+        #3
+    \end{minipage}%
+}
 
 
 \title{
     Exploring Deep Learning Techniques for Long Term UAV Trajectory Prediction
 }
-\author{Sam Ly}
+\author{
+    Dr. Shokoufeh Mirzaei, Sam Ly, Anna Chiu, Megan Bee, Ray Tan
+}
 \institute{Cal Poly Pomona}
 \date{\today}
-
 
 \begin{document}
 \begin{frame}
@@ -18,12 +35,75 @@
 \end{frame}
 
 \begin{frame}
+    \frametitle{Introduction}
+    \centering
+
+    \begin{columns}
+        \begin{column}{10em}
+            \personcard{resources/mirzaei.png}{Shokoufeh Mirzaei}{
+                Ph.D., IE @ WSU
+
+                Chair and Professor @ CPP IE
+            }
+        \end{column}
+        
+        \begin{column}{10em}
+            \personcard{resources/sam.png}{Sam Ly}{
+                CS Undergrad @ CPP
+
+                Minor in Mathematics
+
+                Minor in Data Science
+            }
+        \end{column}
+    \end{columns}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{Special Thanks}
+
+    \begin{itemize}
+        \item \textbf{Mr. Nam Kim} from the CPP IT department for helping us with HPC cluster.
+        \item Fellow students Anna Chiu, Megan Bee, Ray Tan, and Sidd Raj for their contributions to the project.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
     \frametitle{Table of Contents}
 
     \begin{enumerate}
         \item Problem definition
-
+        \item Motivation for Machine Learning and Deep Learning
+        \item Methodology
+        \item Results
+        \item Discussion
     \end{enumerate}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Problem definition}
+
+    We are trying to predict the future positions of a UAV based on historical
+    known positional data. Our research centers around making predictions 
+    \textbf{0.1-3 seconds} into the future.
+
+    \centering
+    \includegraphics[width=0.7\textwidth]{resources/flight_diag.png}
+\end{frame}
+
+
+\begin{frame}
+    \frametitle{Problem definition cont.}
+    Find a function $F$ that maps a list of \textbf{recorded points} $X$ to a list 
+    of \textbf{predicted points} $\hat{Y}$.
+
+    $$ X = \{x_1, x_2, ..., x_n\}, \hat{Y} = \{\hat{y}_1, \hat{y}_2, ..., \hat{y}_m\} $$ 
+    $$ x_i \in R^3 \text{, for } i \in [1, n]$$
+    $$\hat{y}_j \in R^3 \text{, for } j \in [1, m]$$
+    $$ \hat{Y} = F(X) $$
+    where $n$ is the length of the input sequence and $m$ is the length of the 
+    output/predicted sequence.
 \end{frame}
 
 \end{document}
