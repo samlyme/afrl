@@ -1,0 +1,3 @@
+[submodule "paper/mtheme"]
+	path = paper/mtheme
+	url = git@github.com:matze/mtheme.git
