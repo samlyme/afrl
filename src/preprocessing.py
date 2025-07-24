@@ -85,9 +85,9 @@ def walk_and_process(
                 vel = pos_to_vel(pos)
                 vel.to_csv(os.path.join(out_path_vel, dirname, filename))
 
-            if out_path_acc:
-                acc = vel_to_acc(vel)
-                acc.to_csv(os.path.join(out_path_acc, dirname, filename))
+                if out_path_acc:
+                    acc = vel_to_acc(vel)
+                    acc.to_csv(os.path.join(out_path_acc, dirname, filename))
 
 
 def scale_by(df: pd.DataFrame, coords: list[str], max):

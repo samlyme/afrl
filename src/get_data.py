@@ -69,11 +69,11 @@ def get_fpv_uzh():
                     "-d", os.path.join(output_path, new_dir_name)]
                 # print(cmd)
 
-            try:
-                # Run the wget command
-                subprocess.run(cmd, check=True)
-            except subprocess.CalledProcessError as e:
-                return False
+                try:
+                    # Run the wget command
+                    subprocess.run(cmd, check=True)
+                except subprocess.CalledProcessError as e:
+                    return False
 
         return True
 
