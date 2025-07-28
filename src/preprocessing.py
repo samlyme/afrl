@@ -1,64 +1,7 @@
 
-import argparse
 import os
 import numpy as np
 import pandas as pd
-
-
-def resample(df: pd.DataFrame, sampling_time: float):
-    """
-    This function takes the block average as a simple way to reduce noise
-    """
-    df = df.sort_values("timestamp")
-    bins = np.arange(
-        df['timestamp'].min(), 
-        df['timestamp'].max() + sampling_time + 1e-9, 
-        sampling_time
-    )
-    
-    df["bin_index"] = np.digitize(df["timestamp"], bins, right=True)
-
-    grouped = df.groupby("bin_index")
-    mean_values = grouped[["tx", "ty", "tz"]].mean()
-
-    unique_grouped_indices = mean_values.index.values
-
-    valid_indices_mask = unique_grouped_indices > 0
-    
-    filtered_bin_indices = unique_grouped_indices[valid_indices_mask]
-    filtered_mean_values = mean_values[valid_indices_mask]
-
-    df_resampled = pd.DataFrame({
-        # For a bin_index 'k', the block starts at bins[k-1]
-        'timestamp': bins[filtered_bin_indices - 1],
-        'tx': filtered_mean_values["tx"].values,
-        'ty': filtered_mean_values["ty"].values,
-        'tz': filtered_mean_values["tz"].values
-    })
-    
-    return df_resampled
-
-def pos_to_vel(df: pd.DataFrame):
-    out = pd.DataFrame(columns=["timestamp", "vx", "vy", "vz"])
-    dt = df["timestamp"].diff()
-
-    out["timestamp"] = df["timestamp"]
-    out["vx"] = df["tx"].diff() / dt
-    out["vy"] = df["ty"].diff() / dt
-    out["vz"] = df["tz"].diff() / dt
-
-    return out.iloc[1:]
-
-def vel_to_acc(df: pd.DataFrame):
-    out = pd.DataFrame(columns=["timestamp", "ax", "ay", "az"])
-    dt = df["timestamp"].diff()
-
-    out["timestamp"] = df["timestamp"]
-    out["ax"] = df["vx"].diff() / dt
-    out["ay"] = df["vy"].diff() / dt
-    out["az"] = df["vz"].diff() / dt
-
-    return out.iloc[1:]
 
 
 def walk_and_process(
