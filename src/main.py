@@ -1,6 +1,7 @@
 import argparse
 from datetime import datetime
 import os
+import re
 import torch
 import torch.utils.tensorboard
 
@@ -52,10 +53,11 @@ class Trainer:
     
     def train_epochs(
         self,
-        epochs: int
+        epochs: int,
+        start: int = 0
     ):
         best_vloss = 1000000
-        for epoch in range(epochs):
+        for epoch in range(start, epochs):
             self.model.train(True)
             avg_loss = self.train_epoch(epoch) 
 
@@ -87,7 +89,7 @@ class Trainer:
             # Track best performance, and save the model's state
             if avg_vloss < best_vloss:
                 best_vloss = avg_vloss
-                torch.save(self.model.state_dict(), os.path.join(self.model_path, f"model_{datetime.now()}"))
+                torch.save(self.model.state_dict(), os.path.join(self.model_path, f"{datetime.now()}_epoch_{epoch}.pt"))
 
     def train_epoch(
         self,
@@ -197,8 +199,13 @@ def main():
         prediction_sequence_length=y_len
     )
 
+    start = 0
     if args.model:
-        model.load_state_dict(torch.load("best_models/model_20250711_172714"))
+        m = re.search(r"_epoch_(\d+)\.pt$", args.model)
+        if not m:
+            raise ValueError(f"Could not parse epoch from '{args.model}'")
+        start = int(m.group(1))
+        model.load_state_dict(torch.load(args.model))
 
     model.to(device)
 
@@ -214,7 +221,7 @@ def main():
         model_path=f"experiments/models/{args.name}"
     )
 
-    trainer.train_epochs(1000)
+    trainer.train_epochs(1000, start)
 
 if __name__ == "__main__":
     main()
