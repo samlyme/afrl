@@ -166,7 +166,7 @@ def main():
     #     out=acc_norm_path,
     #     coords=["ax", "ay", "az"]
     # )
-    # print("Done normalizing acceleration.")
+    # prInt("Done normalizing acceleration.")
     
     print("Finished.")
     
