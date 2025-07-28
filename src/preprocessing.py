@@ -78,15 +78,15 @@ def walk_and_process(
                 df: pd.DataFrame = pd.read_csv(os.path.join(dirpath, filename))
 
                 # From the racing dataset
-                pos: pd.DataFrame = df[["elapsed_time"] + ["drone_" + d for d in coords]]
+                pos: pd.DataFrame = df[["timestamp"] + ["drone_" + d for d in coords]]
                 pos.rename({"drone_" + d: d for d in coords})
                 pos.to_csv(os.path.join(out_path_pos, filename))
 
-                vel: pd.DataFrame = df[["elapsed_time"] + ["drone_velocity_linear_" + d for d in coords]]
+                vel: pd.DataFrame = df[["timestamp"] + ["drone_velocity_linear_" + d for d in coords]]
                 vel.rename({"drone_velocity_linear_" + d: d for d in coords})
                 vel.to_csv(os.path.join(out_path_vel, filename))
 
-                acc: pd.DataFrame = df[["elapsed_time"] + ["accel_" + d for d in coords]]
+                acc: pd.DataFrame = df[["timestamp"] + ["accel_" + d for d in coords]]
                 acc.rename({"accel_" + d: d for d in coords})
                 acc.to_csv(os.path.join(out_path_acc, filename))
 
@@ -143,30 +143,6 @@ def main():
         out_path_acc=acc_path
     )
     print("Done extracting data")
-
-    # pos_norm_path = "data/position/max_norm"
-    # walk_and_normalize(
-    #     root=pos_path,
-    #     out=pos_norm_path,
-    #     coords=["tx", "ty", "tz"]
-    # )
-    # print("Done normalizing position.")
-
-    # vel_norm_path = "data/velocity/max_norm"
-    # walk_and_normalize(
-    #     root=vel_path,
-    #     out=vel_norm_path,
-    #     coords=["vx", "vy", "vz"]
-    # )
-    # print("Done normalizing velocity.")
-
-    # acc_norm_path = "data/acceleration/max_norm"
-    # walk_and_normalize(
-    #     root=acc_path,
-    #     out=acc_norm_path,
-    #     coords=["ax", "ay", "az"]
-    # )
-    # prInt("Done normalizing acceleration.")
     
     print("Finished.")
     
