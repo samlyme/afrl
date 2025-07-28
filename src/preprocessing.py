@@ -64,30 +64,31 @@ def vel_to_acc(df: pd.DataFrame):
 def walk_and_process(
     root: str, 
     out_path_pos: str, 
-    out_path_vel: str | None, 
-    out_path_acc: str | None
+    out_path_vel: str, 
+    out_path_acc: str
 ):
-    for dirname in os.listdir(root):
+    os.makedirs(out_path_pos, exist_ok=True)
+    os.makedirs(out_path_vel, exist_ok=True)
+    os.makedirs(out_path_acc, exist_ok=True)
+    coords = ["x", "y", "z"]
+    for dirpath, _, filenames in os.walk(root):
         # Position is always resampled
-        os.makedirs(os.path.join(out_path_pos, dirname), exist_ok=True)
-        if out_path_vel:
-            os.makedirs(os.path.join(out_path_vel, dirname), exist_ok=True)
-        if out_path_acc:
-            os.makedirs(os.path.join(out_path_acc, dirname), exist_ok=True)
+        for filename in filenames:
+            if "500hz_freq_sync.csv" in filename:
+                df: pd.DataFrame = pd.read_csv(os.path.join(dirpath, filename))
 
-        for filename in os.listdir(os.path.join(root, dirname)):
-            df = pd.read_csv(os.path.join(root, dirname, filename))
+                # From the racing dataset
+                pos: pd.DataFrame = df[["elapsed_time"] + ["drone_" + d for d in coords]]
+                pos.rename({"drone_" + d: d for d in coords})
+                pos.to_csv(os.path.join(out_path_pos, filename))
 
-            pos = resample(df, 0.1)
-            pos.to_csv(os.path.join(out_path_pos, dirname, filename))
+                vel: pd.DataFrame = df[["elapsed_time"] + ["drone_velocity_linear_" + d for d in coords]]
+                vel.rename({"drone_velocity_linear_" + d: d for d in coords})
+                vel.to_csv(os.path.join(out_path_vel, filename))
 
-            if out_path_vel:
-                vel = pos_to_vel(pos)
-                vel.to_csv(os.path.join(out_path_vel, dirname, filename))
-
-                if out_path_acc:
-                    acc = vel_to_acc(vel)
-                    acc.to_csv(os.path.join(out_path_acc, dirname, filename))
+                acc: pd.DataFrame = df[["elapsed_time"] + ["accel_" + d for d in coords]]
+                acc.rename({"accel_" + d: d for d in coords})
+                acc.to_csv(os.path.join(out_path_acc, filename))
 
 
 def scale_by(df: pd.DataFrame, coords: list[str], max):
@@ -130,101 +131,42 @@ def walk_and_normalize(root: str, out: str, coords: list[str]):
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Derive velocity and acceleration data. Normalize said data."
-    )
-
-    parser.add_argument(
-        "--all",
-        action="store_true",
-        help="Derives vel and acc, then normalizes vel and acc."
-        "NOTE: This does not specify which datasets to include, just what actions to perform on the datasets."
-    )
-    
-    parser.add_argument(
-        "-t",
-        "--time",
-        type=float,
-        default=0.1,
-        help="Resamples position data. Defaults to 0.1 sec or 10hz."
-    )
-
-    parser.add_argument(
-        "-v",
-        "--velocity",
-        action="store_true",
-        help="Derives velocity from position."
-    )
-
-    parser.add_argument(
-        "-a",
-        "--acceleration",
-        action="store_true",
-        help="Derives acceleration from velocity. Fails if velocity does not exist."
-    )
-
-    parser.add_argument(
-        "-np",
-        "--norm-position",
-        action="store_true",
-        help="Normalizes position data."
-    )
-
-    parser.add_argument(
-        "-nv",
-        "--norm-velocity",
-        action="store_true",
-        help="Normalizes velocity data."
-    )
-
-    parser.add_argument(
-        "-na",
-        "--norm-acceleration",
-        action="store_true",
-        help="Normalizes acceleration data."
-    )
-
-    args = parser.parse_args()
-
-    data_root = "data/clean"
-    pos_path = "data/position/raw"
-    vel_path = "data/velocity/raw" 
-    acc_path = "data/acceleration/raw"
+    data_root = "data/raw/drone-racing-dataset"
+    pos_path = "data/clean/drone-racing-dataset/pos"
+    vel_path = "data/clean/drone-racing-dataset/vel" 
+    acc_path = "data/clean/drone-racing-dataset/acc"
 
     walk_and_process(
         root=data_root,
         out_path_pos=pos_path,
-        out_path_vel=vel_path if args.all or args.velocity else None,
-        out_path_acc=acc_path if args.all or args.acceleration else None
+        out_path_vel=vel_path,
+        out_path_acc=acc_path
     )
-    print("Done resampling and deriving.")
+    print("Done extracting data")
 
-    if args.all or args.norm_position:
-        pos_norm_path = "data/position/max_norm"
-        walk_and_normalize(
-            root=pos_path,
-            out=pos_norm_path,
-            coords=["tx", "ty", "tz"]
-        )
-        print("Done normalizing position.")
+    # pos_norm_path = "data/position/max_norm"
+    # walk_and_normalize(
+    #     root=pos_path,
+    #     out=pos_norm_path,
+    #     coords=["tx", "ty", "tz"]
+    # )
+    # print("Done normalizing position.")
 
-    if args.all or args.norm_velocity:
-        vel_norm_path = "data/velocity/max_norm"
-        walk_and_normalize(
-            root=vel_path,
-            out=vel_norm_path,
-            coords=["vx", "vy", "vz"]
-        )
-        print("Done normalizing velocity.")
+    # vel_norm_path = "data/velocity/max_norm"
+    # walk_and_normalize(
+    #     root=vel_path,
+    #     out=vel_norm_path,
+    #     coords=["vx", "vy", "vz"]
+    # )
+    # print("Done normalizing velocity.")
 
-    if args.all or args.norm_acceleration:
-        acc_norm_path = "data/acceleration/max_norm"
-        walk_and_normalize(
-            root=acc_path,
-            out=acc_norm_path,
-            coords=["ax", "ay", "az"]
-        )
-        print("Done normalizing acceleration.")
+    # acc_norm_path = "data/acceleration/max_norm"
+    # walk_and_normalize(
+    #     root=acc_path,
+    #     out=acc_norm_path,
+    #     coords=["ax", "ay", "az"]
+    # )
+    # print("Done normalizing acceleration.")
     
     print("Finished.")
     
