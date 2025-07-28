@@ -4,7 +4,6 @@ import subprocess
 import threading
 
 import h5py
-from networkx import parse_gml
 import numpy as np
 import pandas as pd
 
