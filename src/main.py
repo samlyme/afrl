@@ -5,7 +5,7 @@ import torch
 import torch.utils.tensorboard
 
 from src.datasets import Fold, Split, TrajectoryDataset, read_split
-from src.models import TrajectoryPredictor
+from src.models import GRUTrajectoryPredictor
 
 
 class Trainer:
@@ -73,7 +73,7 @@ class Trainer:
                     vloss = self.loss_fn(voutputs, vlabels)
                     running_vloss += vloss
 
-            avg_vloss = running_vloss / (i + 1)
+            avg_vloss = running_vloss / (i + 1)  # type: ignore
             print(f"LOSS train {avg_loss} valid {avg_vloss}")
             
             # Log the running loss averaged per batch
@@ -189,7 +189,7 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # TODO: Implement model config object that can be saved.
-    model=TrajectoryPredictor(
+    model = GRUTrajectoryPredictor(
         input_features_dim=3,
         hidden_state_dim=64,
         output_features_dim=3,

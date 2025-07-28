@@ -1,7 +1,7 @@
 import torch
 
 
-class TrajectoryPredictor(torch.nn.Module):
+class GRUTrajectoryPredictor(torch.nn.Module):
     """
     An Encoder-Decoder model for trajectory prediction using GRU units.
     It takes an input sequence of points and predicts a future sequence of points.
