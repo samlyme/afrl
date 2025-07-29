@@ -13,6 +13,7 @@ dependencies = [
     "matplotlib>=3.10.3",
     "pandas>=2.3.0",
     "pydantic>=2.11.7",
+    "scikit-learn>=1.7.1",
     "standard-imghdr>=3.13.0",
     "tensorboard>=2.19.0",
     "torch>=2.7.1",
