@@ -89,7 +89,7 @@ class Trainer:
             # Track best performance, and save the model's state
             if avg_vloss < best_vloss:
                 best_vloss = avg_vloss
-                torch.save(self.model.state_dict(), os.path.join(self.model_path, f"{datetime.now()}_epoch_{epoch}.pt"))
+                torch.save(self.model.state_dict(), os.path.join(self.model_path, f"epoch_{epoch}.pt"))
 
     def train_epoch(
         self,
@@ -181,6 +181,8 @@ def main():
             batch_size=32,
         )
 
+        logdir = f"experiments/logs/{args.name}/fold_{fold_idx}"
+        model_path = f"experiments/models/{args.name}/fold_{fold_idx}"
         trainer = Trainer(
             model=model,
             optimizer=optimizer,
@@ -188,8 +190,8 @@ def main():
             train_loader=train_loader,
             validation_loader=validation_loader,
             device=device,
-            writer=torch.utils.tensorboard.SummaryWriter(f"experiments/logs/{args.name}_fold_{fold_idx}"),
-            model_path=f"experiments/models/{args.name}_fold_{fold_idx}"
+            writer=torch.utils.tensorboard.SummaryWriter(logdir),
+            model_path=model_path
         )
 
         trainer.train_epochs(50)
