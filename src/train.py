@@ -3,7 +3,6 @@ import os
 import numpy as np
 from sklearn.model_selection import KFold
 import torch
-from datetime import datetime
 import torch.utils.tensorboard
 
 from src.datasets import generate_auto_encoder_dataset
