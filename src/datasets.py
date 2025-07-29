@@ -81,7 +81,7 @@ class FlightDataset(torch.utils.data.Dataset):
         if self.norm_out:
             window = window - window[0]
 
-        return window
+        return window, window # Cheap way to train autoencoder
 
 
 class FlightsDataset(torch.utils.data.ConcatDataset):
