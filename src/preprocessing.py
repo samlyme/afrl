@@ -13,7 +13,6 @@ def walk_and_process(
     os.makedirs(out_path_pos, exist_ok=True)
     os.makedirs(out_path_vel, exist_ok=True)
     os.makedirs(out_path_acc, exist_ok=True)
-    coords = ["x", "y", "z"]
     for dirpath, _, filenames in os.walk(root):
         # Position is always resampled
         for filename in filenames:
@@ -21,17 +20,26 @@ def walk_and_process(
                 df: pd.DataFrame = pd.read_csv(os.path.join(dirpath, filename))
 
                 # From the racing dataset
-                pos: pd.DataFrame = df[["timestamp"] + ["drone_" + d for d in coords]]
-                pos.rename({"drone_" + d: d for d in coords})
-                pos.to_csv(os.path.join(out_path_pos, filename))
+                coords = ["x", "y", "z"]
+                tasks = [
+                    ("drone_",                   out_path_pos),
+                    ("drone_velocity_linear_",   out_path_vel),
+                    ("accel_",                   out_path_acc),
+                ]
 
-                vel: pd.DataFrame = df[["timestamp"] + ["drone_velocity_linear_" + d for d in coords]]
-                vel.rename({"drone_velocity_linear_" + d: d for d in coords})
-                vel.to_csv(os.path.join(out_path_vel, filename))
+                for prefix, out_path in tasks:
+                    # build the column‐rename dict {"prefixx": "x", ...}
+                    mapping = {f"{prefix}{d}": d for d in coords}
 
-                acc: pd.DataFrame = df[["timestamp"] + ["accel_" + d for d in coords]]
-                acc.rename({"accel_" + d: d for d in coords})
-                acc.to_csv(os.path.join(out_path_acc, filename))
+                    # select timestamp + all prefixed coords
+                    cols = ["timestamp", *mapping.keys()]
+
+                    # slice, rename, and dump
+                    df_sub = df[cols].rename(columns=mapping)
+                    df_sub.to_csv(
+                        os.path.join(out_path, filename),
+                        index=False
+                    )
 
 
 def scale_by(df: pd.DataFrame, coords: list[str], max):
