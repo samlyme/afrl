@@ -1,13 +1,13 @@
 import argparse
-from datetime import datetime
 import os
-import re
+import numpy as np
+from sklearn.model_selection import KFold
 import torch
+from datetime import datetime
 import torch.utils.tensorboard
 
-from src.datasets import Fold, Split, TrajectoryDataset, read_split
-from src.models import GRUTrajectoryPredictor
-
+from src.datasets import generate_auto_encoder_dataset
+from src.models import FlightAutoEncoder
 
 class Trainer:
     """
@@ -18,7 +18,7 @@ class Trainer:
     loss_fn: torch.nn.Module
     train_loader: torch.utils.data.DataLoader
     validation_loader: torch.utils.data.DataLoader
-    test_loader: torch.utils.data.DataLoader
+    # test_loader: torch.utils.data.DataLoader
     device: torch.device
     writer: torch.utils.tensorboard.SummaryWriter
 
@@ -29,7 +29,7 @@ class Trainer:
         loss_fn: torch.nn.Module,
         train_loader: torch.utils.data.DataLoader,
         validation_loader: torch.utils.data.DataLoader,
-        test_loader: torch.utils.data.DataLoader,
+        # test_loader: torch.utils.data.DataLoader,
         device: torch.device,
         writer: torch.utils.tensorboard.SummaryWriter,
         model_path: str,
@@ -40,7 +40,7 @@ class Trainer:
 
         self.train_loader = train_loader
         self.validation_loader = validation_loader
-        self.test_loader = test_loader
+        # self.test_loader = test_loader
 
         self.device = device
         print("using device ", self.device)
@@ -131,7 +131,7 @@ class Trainer:
 
         return last_loss
 
-def main():
+def get_args():
     parser = argparse.ArgumentParser(
         description="Train models with specific data and hyperparameters."
     )
@@ -142,86 +142,60 @@ def main():
         help="The name of this training job. Used for tensorboard reporting."
     )
 
-    parser.add_argument(
-        "-s",
-        "--split",
-        type=str,
-        required=True,
-        help="Path to a valid .json file that specifies the data split for k-fold CV."
+    return parser.parse_args()
+
+def main():
+    vel_dir = "data/clean/drone-racing-dataset/vel"
+    files = os.listdir(vel_dir)
+    dataset: torch.utils.data.Dataset = generate_auto_encoder_dataset(
+        files=[os.path.abspath(os.path.join(vel_dir, fname)) for fname in files],
+        input_sr=500,
+        target_sr=100,
+        window_size=100,
+        norm_out=False
     )
-
-    parser.add_argument(
-        "-f",
-        "--fold",
-        type=int,
-        required=True,
-        help="Specifies the specific fold to train on. Must be within the range of folds in split. Zero-indexed."
-    )
-
-    parser.add_argument(
-        "-m",
-        "--model",
-        type=str,
-        default=None,
-        help="Specifies a modelfile to start from. If not specified, model will start from scratch."
-    )
-
-    
-    args = parser.parse_args()
-    
-
-    split: Split = read_split(args.split)
-    if args.fold >= len(split.folds):
-        raise Exception("Invalid fold index.")
-
-    fold: Fold = split.folds[args.fold]
-
-    # TODO: (MAYBE) implement sequence lengths as hyperparameters
-    X_len, y_len = 20, 10
-    train_dataset = TrajectoryDataset(fold.train, X_len, y_len)
-    validation_dataset = TrajectoryDataset(fold.validation, X_len, y_len)
-    test_dataset = TrajectoryDataset(split.test, X_len, y_len)
-
-    # TODO: (MAYBE) Implement custom sampler
-    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=10, shuffle=True)
-    validation_loader = torch.utils.data.DataLoader(validation_dataset, batch_size=10, shuffle=True)
-    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=10, shuffle=True)
-
-
+    print("dataset size: ", len(dataset))
+    kf = KFold(n_splits=5, shuffle=True, random_state=1)
+    folds = list(kf.split(np.arange(len(dataset))))
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    # TODO: Implement model config object that can be saved.
-    model = GRUTrajectoryPredictor(
-        input_features_dim=3,
-        hidden_state_dim=64,
-        output_features_dim=3,
-        num_gru_layers=2,
-        prediction_sequence_length=y_len
-    )
+    args = get_args()
 
-    start = 0
-    if args.model:
-        m = re.search(r"_epoch_(\d+)\.pt$", args.model)
-        if not m:
-            raise ValueError(f"Could not parse epoch from '{args.model}'")
-        start = int(m.group(1))
-        model.load_state_dict(torch.load(args.model))
+    def train_eval_fold(train_idx, val_idx, fold_idx):
+        model =  FlightAutoEncoder(
+            seq_len=100,
+            in_dim=3,
+            latent_dim=32,
+        )
+        model.to(device)
 
-    model.to(device)
+        optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+        loss_fn = torch.nn.MSELoss()
+        train_loader = torch.utils.data.DataLoader(
+            torch.utils.data.Subset(dataset, train_idx),
+            batch_size=32,
+            shuffle=True
+        )
+        validation_loader = torch.utils.data.DataLoader(
+            torch.utils.data.Subset(dataset, val_idx),
+            batch_size=32,
+        )
 
-    trainer = Trainer(
-        model=model,
-        optimizer=torch.optim.Adam(model.parameters(), lr=0.001),
-        loss_fn=torch.nn.MSELoss(),
-        train_loader=train_loader,
-        validation_loader=validation_loader,
-        test_loader=test_loader,
-        device=device,
-        writer=torch.utils.tensorboard.SummaryWriter(f"experiments/logs/{args.name}"),
-        model_path=f"experiments/models/{args.name}"
-    )
+        trainer = Trainer(
+            model=model,
+            optimizer=optimizer,
+            loss_fn=loss_fn,
+            train_loader=train_loader,
+            validation_loader=validation_loader,
+            device=device,
+            writer=torch.utils.tensorboard.SummaryWriter(f"experiments/logs/{args.name}_fold_{fold_idx}"),
+            model_path=f"experiments/models/{args.name}_fold_{fold_idx}"
+        )
 
-    trainer.train_epochs(1000, start)
+        trainer.train_epochs(50)
+
+    for i, (train_idx, val_idx) in enumerate(folds):
+        train_eval_fold(train_idx, val_idx, i)
 
 if __name__ == "__main__":
     main()
