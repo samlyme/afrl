@@ -64,3 +64,34 @@ class GRUTrajectoryPredictor(torch.nn.Module):
         predicted_trajectory = self.projection(decoder_outputs) 
         
         return predicted_trajectory
+
+
+# TEST MODEL!!!!
+class FlightAutoEncoder(torch.nn.Module):
+    def __init__(self, seq_len=100, in_dim=3, latent_dim=32):
+        super().__init__()
+        self.seq_len = seq_len
+        self.in_dim = in_dim
+        flat_dim = seq_len * in_dim
+
+        # encoder: 300 → 128 → latent
+        self.encoder = torch.nn.Sequential(
+            torch.nn.Linear(flat_dim, 128),
+            torch.nn.ReLU(inplace=True),
+            torch.nn.Linear(128, latent_dim)
+        )
+        # decoder: latent → 128 → 300
+        self.decoder = torch.nn.Sequential(
+            torch.nn.Linear(latent_dim, 128),
+            torch.nn.ReLU(inplace=True),
+            torch.nn.Linear(128, flat_dim)
+        )
+
+    def forward(self, x):
+        # x: [B,100,3]
+        B = x.size(0)
+        x_flat = x.view(B, -1)                # [B,300]
+        z      = self.encoder(x_flat)         # [B,latent_dim]
+        rec_flat = self.decoder(z)            # [B,300]
+        rec = rec_flat.view(B, self.seq_len, self.in_dim)
+        return rec
