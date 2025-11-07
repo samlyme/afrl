@@ -49,3 +49,10 @@ Thus, we split the data into folds by files.
 python src/datasets.py data/velocity/max_norm --shuffle --seed 42
 ```
 Replace `data/velocity/max_norm` with `data/position/max_norm` for position data.
+
+## Train
+
+To train, call the main python file. 
+```
+python -m src.main <name of run> -s <json file of split> -f <0-indexed split> -c <json configuration>
+```
