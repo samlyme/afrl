@@ -41,15 +41,11 @@ Inside the `data/scripts` directory, you will find 4 scripts, each corresponding
 
 The data preprocessing is run in the notebook at the root of the project directory. 
 
-## Things done
+## Create folds
 
-- Data automation
-- Encoder decoder architecture
-- Stratified k-fold cross validation
-- Sophisticated data normalization (statistical whitening)
-- Out of distribution testing
-
-## Things to be explored
-
-- Batch normalization
-- Other "distribution agnostic" approaches
+When creating folds, we must be careful to not incure data leakage between folds.
+Thus, we split the data into folds by files. 
+```
+python src/datasets.py data/velocity/max_norm --shuffle --seed 42
+```
+Replace `data/velocity/max_norm` with `data/position/max_norm` for position data.

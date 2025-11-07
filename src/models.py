@@ -1,5 +1,30 @@
+from pydantic import BaseModel, conint
 import torch
 
+class Config(BaseModel):
+    hidden_state_dim: int 
+    num_gru_layers: int
+    prediction_sequence_length: int
+
+def model_from_config(config: Config, feature_dim: int) -> torch.nn.Module:
+    return TrajectoryPredictor(
+        input_features_dim=feature_dim,
+        hidden_state_dim=config.hidden_state_dim,
+        output_features_dim=feature_dim,
+        num_gru_layers=config.num_gru_layers,
+        prediction_sequence_length=config.prediction_sequence_length
+    )
+
+
+def read_config(file_path: str) -> Config:
+    with open(file_path, 'r', encoding='utf-8') as f:
+        raw_data = f.read()
+    
+    try:
+        return Config.model_validate_json(raw_data)
+
+    except Exception as e:
+        raise e
 
 class TrajectoryPredictor(torch.nn.Module):
     """

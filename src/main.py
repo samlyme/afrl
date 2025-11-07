@@ -5,7 +5,66 @@ import torch
 import torch.utils.tensorboard
 
 from src.datasets import Fold, Split, TrajectoryDataset, read_split
-from src.models import TrajectoryPredictor
+from src.models import Config, TrajectoryPredictor, model_from_config, read_config
+
+class EarlyStopping:
+    """
+    Stops training when monitored metric hasn't improved for `patience` epochs.
+    Optionally restores best model weights.
+
+    Args:
+        patience (int): epochs to wait after last improvement.
+        min_delta (float): minimum change to qualify as improvement (absolute).
+        mode (str): 'min' for loss, 'max' for accuracy/score.
+        restore_best (bool): if True, restore model weights from best epoch.
+    """
+    def __init__(self, patience=10, min_delta=0.0, mode='min', restore_best=True):
+        assert mode in ('min', 'max')
+        self.patience = patience
+        self.min_delta = min_delta
+        self.mode = mode
+        self.restore_best = restore_best
+
+        self.best_score = None
+        self.best_state = None
+        self.num_bad_epochs = 0
+        self.should_stop = False
+
+    def _is_better(self, score, best):
+        if best is None:
+            return True
+        if self.mode == 'min':
+            return score < best - self.min_delta
+        else:
+            return score > best + self.min_delta
+
+    def step(self, score, model=None):
+        """
+        Call this at the end of each epoch with the validation metric.
+        Args:
+            score (float): the monitored value (e.g., val_loss or val_acc).
+            model (torch.nn.Module|Any): model to snapshot (optional).
+        Returns:
+            bool: True if training should stop.
+        """
+        if self._is_better(score, self.best_score):
+            self.best_score = score
+            self.num_bad_epochs = 0
+            if model is not None and self.restore_best:
+                # keep a lightweight copy of weights only
+                import copy
+                self.best_state = copy.deepcopy(getattr(model, "state_dict", lambda: {})())
+        else:
+            self.num_bad_epochs += 1
+            if self.num_bad_epochs >= self.patience:
+                self.should_stop = True
+        return self.should_stop
+
+    def restore(self, model):
+        """Restore best weights if `restore_best=True` and a snapshot exists."""
+        if self.restore_best and self.best_state is not None and model is not None:
+            model.load_state_dict(self.best_state)
+
 
 
 class Trainer:
@@ -55,6 +114,7 @@ class Trainer:
         epochs: int
     ):
         best_vloss = 1000000
+        early_stopper = EarlyStopping(patience=10, min_delta=10e-6)
         for epoch in range(epochs):
             self.model.train(True)
             avg_loss = self.train_epoch(epoch) 
@@ -64,6 +124,7 @@ class Trainer:
             # statistics for batch normalization.
             self.model.eval()
             # Disable gradient computation and reduce memory consumption.
+            i = 0
             with torch.no_grad():
                 for i, vdata in enumerate(self.validation_loader):
                     vinputs, vlabels = vdata
@@ -82,7 +143,10 @@ class Trainer:
                             { 'Training' : avg_loss, 'Validation' : avg_vloss },
                             epoch + 1)
             self.writer.flush()
-            # TODO: implement early stopping
+            
+            if early_stopper.step(avg_vloss, self.model):
+                print(f"Early stopping")
+                break
 
             # Track best performance, and save the model's state
             if avg_vloss < best_vloss:
@@ -155,6 +219,14 @@ def main():
         required=True,
         help="Specifies the specific fold to train on. Must be within the range of folds in split. Zero-indexed."
     )
+    
+    parser.add_argument(
+        "-c",
+        "--config",
+        type=str, 
+        required=True,
+        help="Specifies a model config file."
+    )
 
     parser.add_argument(
         "-m",
@@ -174,13 +246,14 @@ def main():
 
     fold: Fold = split.folds[args.fold]
 
-    # TODO: (MAYBE) implement sequence lengths as hyperparameters
-    X_len, y_len = 20, 10
+    config: Config = read_config(args.config)
+
+    X_len, y_len = 20, config.prediction_sequence_length
+
     train_dataset = TrajectoryDataset(fold.train, X_len, y_len)
     validation_dataset = TrajectoryDataset(fold.validation, X_len, y_len)
     test_dataset = TrajectoryDataset(split.test, X_len, y_len)
 
-    # TODO: (MAYBE) Implement custom sampler
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=10, shuffle=True)
     validation_loader = torch.utils.data.DataLoader(validation_dataset, batch_size=10, shuffle=True)
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=10, shuffle=True)
@@ -188,17 +261,10 @@ def main():
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    # TODO: Implement model config object that can be saved.
-    model=TrajectoryPredictor(
-        input_features_dim=3,
-        hidden_state_dim=64,
-        output_features_dim=3,
-        num_gru_layers=2,
-        prediction_sequence_length=y_len
-    )
+    model=model_from_config(config, 3)
 
     if args.model:
-        model.load_state_dict(torch.load("best_models/model_20250711_172714"))
+        model.load_state_dict(torch.load(args.model))
 
     model.to(device)
 

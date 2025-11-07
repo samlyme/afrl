@@ -1,0 +1,5 @@
+{
+  "hidden_state_dim": 128,
+  "num_gru_layers": 3,
+  "prediction_sequence_length": 50
+}
